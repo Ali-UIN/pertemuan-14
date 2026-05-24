@@ -1,34 +1,23 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## Ringkasan
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+- Model Buku: accessor `status_stok_badge`, `tahun_label`
+- Model Buku: scope `stokMenipis`, `hargaRange`, `terbaru`
+- Model Anggota: accessor `status_badge`, `kategori_usia`
+- Model Anggota: scope `jenisKelamin`, `terdaftarBulanIni`
 
-## Dokumentasi Tugas
+## Daftar Route
 
-### Daftar Route
+| Method | Path | Keterangan |
+| --- | --- | --- |
+| GET | /test-accessor-scope | Testing accessor & scope |
 
-| Method | Path | Name | Keterangan |
-| --- | --- | --- | --- |
-| GET | /anggota | anggota.index | Daftar anggota |
-| GET | /anggota/{id} | anggota.show | Detail anggota |
-| GET | /kategori | kategori.index | Daftar kategori |
-| GET | /kategori/search/{keyword} | kategori.search | Pencarian kategori |
-| GET | /kategori/{id} | kategori.show | Detail kategori dan buku |
+## Cara Uji
 
-### Screenshot Hasil
+1. Jalankan server: `php artisan serve`
+2. Buka: `http://localhost:8000/test-accessor-scope`
 
-Simpan gambar di folder docs/screenshots lalu tampilkan di bawah ini.
+## Screenshot
 
-![Daftar Anggota](/docs/screenshots/anggota.png)
-![Detail Anggota](/docs/screenshots/anggota-1.png)
-![Daftar Kategori](/docs/screenshots/kategori.png)
-![Detail Kategori](/docs/screenshots/kategori-1.png)
-![Pencarian Kategori](/docs/screenshots/kategori-search.png)
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+![Tugas 1](/docs/screenshots/tugas1.png)
+![Tugas 1-2](/docs/screenshots/tugas1-2.png)
+![Hasil Tugas 2 - Accessor & Scope](/docs/screenshots/hasiltugas2.png)
