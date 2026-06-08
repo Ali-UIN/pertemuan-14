@@ -1,81 +1,144 @@
-# Sistem Perpustakaan - Tugas 1-3
+# Sistem Perpustakaan - Pertemuan 12
 
 ## Ringkasan
 
-- Tugas 1: Halaman dashboard dengan ringkasan statistik, list terbaru, dan quick links.
-- Tugas 2: Blade Component reusable untuk card buku.
-- Tugas 3: Search & filter buku advanced (keyword, kategori, tahun, ketersediaan).
+- Tugas 1: Validation Rules Advanced untuk data buku.
+- Tugas 2: Bulk delete multiple buku sekaligus.
+- Tugas 3: Export data buku ke file CSV.
 
-## Tugas 1 - Halaman Dashboard
+## Tugas 1 - Validation Rules Advanced
 
-- Controller: `DashboardController@index`
-- Route: `/dashboard`
-- Data ditampilkan:
-	- Total buku, buku tersedia, buku habis
-	- Total anggota, anggota aktif, anggota nonaktif
-	- List 5 buku terbaru
-	- List 5 anggota terbaru
-	- Quick links ke menu utama
+### Ketentuan Validasi
 
-## Tugas 2 - Blade Component Card Buku
+- Kode buku memakai custom rule `KodeBukuFormat`.
+- Format kode buku: `BK-[kategori singkat]-[nomor]`.
+- Contoh: `BK-PROG-001`, `BK-DB-002`.
+- Jika kategori `Programming`, field `bahasa` wajib `Inggris`.
+- Semua pesan error menggunakan bahasa Indonesia.
 
-- Generate component: `php artisan make:component BukuCard`
-- Props:
-	- `$buku` (object Buku)
-	- `$showActions` (boolean, default `true`)
-- Tampilan:
-	- Cover (icon), judul, pengarang, harga, stok
-	- Badge kategori
-	- Status ketersediaan
-	- Button actions (Detail, Edit) jika `$showActions = true`
+### Lokasi Implementasi
 
-## Tugas 3 - Search & Filter Buku Advanced
+- Rule: [app/Rules/KodeBukuFormat.php](app/Rules/KodeBukuFormat.php)
+- Request validation: [app/Http/Requests/StoreBukuRequest.php](app/Http/Requests/StoreBukuRequest.php)
+- Request validation: [app/Http/Requests/UpdateBukuRequest.php](app/Http/Requests/UpdateBukuRequest.php)
+- Form edit buku: [resources/views/buku/edit.blade.php](resources/views/buku/edit.blade.php)
 
-### Form Search
+### Screenshot
 
-- Input keyword (search judul, pengarang, penerbit)
-- Filter kategori (dropdown)
-- Filter tahun (dropdown)
-- Filter ketersediaan (Semua/Tersedia/Habis)
+![Validasi Kode Buku](docs/screenshots/validasikodebuku.png)
+![Validasi Bahasa](docs/screenshots/validasibahasa.png)
+
+## Tugas 2 - Bulk Delete Multiple Buku
+
+### Fitur
+
+- Checkbox pada setiap kartu buku.
+- Checkbox `Pilih Semua` untuk memilih seluruh buku.
+- Tombol hapus terpilih dengan konfirmasi SweetAlert.
+- Delete individual tetap berjalan terpisah dari bulk delete.
 
 ### Route
 
-- `/buku/search`
+- `/buku/bulk-delete`
 
 ### Controller Method
 
 ```php
-public function search(Request $request)
+public function bulkDelete(Request $request)
 {
-		$query = Buku::query();
-
-		// Filter implementation
-
-		$bukus = $query->latest()->get();
-		return view('buku.index', compact('bukus'));
+	$ids = $request->buku_ids;
+	Buku::whereIn('id', $ids)->delete();
+	return redirect()->route('buku.index')
+				 ->with('success', count($ids) . ' buku berhasil dihapus!');
 }
 ```
+
+### Lokasi Implementasi
+
+- Route: [routes/web.php](routes/web.php)
+- Controller: [app/Http/Controllers/BukuController.php](app/Http/Controllers/BukuController.php)
+- View index: [resources/views/buku/index.blade.php](resources/views/buku/index.blade.php)
+- Card buku: [resources/views/components/buku-card.blade.php](resources/views/components/buku-card.blade.php)
+
+### Screenshot
+
+![Bulk Pilih](docs/screenshots/bulkpilih.png)
+![Hapus Pilih](docs/screenshots/hapuspilih.png)
+![Buku Dihapus](docs/screenshots/bukudihapus.png)
+
+## Tugas 3 - Export Buku ke CSV
+
+### Fitur
+
+- Button **Export CSV** pada halaman index buku.
+- Data buku diunduh sebagai file `.csv`.
+- Header CSV berisi kode buku, judul, kategori, pengarang, penerbit, tahun, ISBN, harga, dan stok.
+
+### Route
+
+- `/buku/export`
+
+### Controller Method
+
+```php
+public function export()
+{
+	$bukus = Buku::all();
+
+	$filename = 'buku_' . date('Y-m-d_His') . '.csv';
+	$headers = [
+		'Content-Type' => 'text/csv',
+		'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+	];
+
+	$callback = function () use ($bukus) {
+		$file = fopen('php://output', 'w');
+
+		fputcsv($file, ['Kode Buku', 'Judul', 'Kategori', 'Pengarang', 'Penerbit', 'Tahun', 'ISBN', 'Harga', 'Stok']);
+
+		foreach ($bukus as $buku) {
+			fputcsv($file, [
+				$buku->kode_buku,
+				$buku->judul,
+				$buku->kategori,
+				$buku->pengarang,
+				$buku->penerbit,
+				$buku->tahun_terbit,
+				$buku->isbn,
+				$buku->harga,
+				$buku->stok,
+			]);
+		}
+
+		fclose($file);
+	};
+
+	return response()->stream($callback, 200, $headers);
+}
+```
+
+### Lokasi Implementasi
+
+- Route: [routes/web.php](routes/web.php)
+- Controller: [app/Http/Controllers/BukuController.php](app/Http/Controllers/BukuController.php)
+- View index: [resources/views/buku/index.blade.php](resources/views/buku/index.blade.php)
+
+### Screenshot
+
+![Button Export CSV](docs/screenshots/csvbuku.png)
+![Hasil Export CSV](docs/screenshots/fiturcsv.png)
 
 ## Cara Menjalankan
 
 1. Jalankan server:
-	 ```bash
-	 php artisan serve
-	 ```
+	```bash
+	php artisan serve
+	```
 2. Buka:
-	 - `http://localhost:8000/dashboard`
-	 - `http://localhost:8000/buku`
-
-## Cara Uji Search & Filter
-
-- Buka `http://localhost:8000/buku`
-- Isi form search dan klik **Cari**
-- Contoh URL hasil filter:
+	- `http://localhost:8000/buku`
+	- `http://localhost:8000/buku/export`
 	- `http://localhost:8000/buku/search?keyword=laravel&kategori=Programming&tahun=2024&ketersediaan=tersedia`
 
-## Dokumentasi
+## Dokumentasi Tambahan
 
 ![Hasil Terminal](docs/screenshots/hasilterminal11.png)
-![Dashboard](docs/screenshots/dashboard.png)
-![Card Buku](docs/screenshots/cardbuku.png)
-![Search Buku](docs/screenshots/searchbuku.png)

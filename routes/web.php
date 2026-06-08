@@ -16,6 +16,8 @@ Route::get('/', function () {
 })->name('home');
 // ========== TESTING BUKU ==========
 Route::get('/buku/search', [BukuController::class, 'search'])->name('buku.search');
+Route::post('/buku/bulk-delete', [BukuController::class, 'bulkDelete'])->name('buku.bulk-delete');
+Route::get('/buku/export', [BukuController::class, 'export'])->name('buku.export');
 Route::resource('buku', BukuController::class);
 Route::resource('anggota', AnggotaController::class);
 Route::resource('dashboard', DashboardController::class);

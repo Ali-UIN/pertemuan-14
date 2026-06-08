@@ -8,9 +8,14 @@
         <i class="bi bi-book"></i>
         Daftar Buku
     </h1>
-    <a href="{{ route('buku.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Tambah Buku
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('buku.export') }}" class="btn btn-success">
+            <i class="bi bi-download"></i> Export CSV
+        </a>
+        <a href="{{ route('buku.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Tambah Buku
+        </a>
+    </div>
 </div>
  
 {{-- Statistik Cards --}}
@@ -119,6 +124,24 @@
     </div>
 </div>
  
+{{-- Bulk Action Toolbar --}}
+@if ($bukus->count() > 0)
+<div class="d-flex justify-content-between align-items-center mb-3 px-3 py-2 bg-light rounded border">
+    <div class="d-flex align-items-center gap-2">
+        <input type="checkbox" id="select-all" class="form-check-input" style="width:18px;height:18px;cursor:pointer;">
+        <label for="select-all" class="mb-0 fw-semibold" style="cursor:pointer;">Pilih Semua</label>
+        <span id="selected-count" class="badge bg-secondary">0 dipilih</span>
+    </div>
+    <button type="button" id="btn-bulk-delete" class="btn btn-sm btn-danger" disabled>
+        <i class="bi bi-trash"></i> Hapus Terpilih (<span id="count-label">0</span>)
+    </button>
+</div>
+@endif
+
+<form action="{{ route('buku.bulk-delete') }}" method="POST" id="bulk-delete-form" class="d-none">
+    @csrf
+</form>
+
 {{-- Daftar Buku --}}
 <div class="row g-3">
     @forelse ($bukus as $buku)
@@ -137,7 +160,7 @@
         </div>
     @endforelse
 </div>
- 
+
 @if ($bukus->count() > 0)
     <div class="text-center mt-4">
         <p class="text-muted">
@@ -148,4 +171,72 @@
         </p>
     </div>
 @endif
+
+@push('scripts')
+<script>
+    // Select All
+    document.getElementById('select-all')?.addEventListener('change', function() {
+        document.querySelectorAll('input[name="buku_ids[]"]').forEach(cb => {
+            cb.checked = this.checked;
+        });
+        updateBulkBar();
+    });
+
+    // Update toolbar saat checkbox individual berubah
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'buku_ids[]') {
+            updateBulkBar();
+        }
+    });
+
+    function updateBulkBar() {
+        const checked = document.querySelectorAll('input[name="buku_ids[]"]:checked');
+        const total   = document.querySelectorAll('input[name="buku_ids[]"]');
+        const count   = checked.length;
+
+        document.getElementById('selected-count').textContent = count + ' dipilih';
+        document.getElementById('count-label').textContent    = count;
+
+        const btn = document.getElementById('btn-bulk-delete');
+        btn.disabled = count === 0;
+
+        // Sinkronisasi select-all checkbox
+        const selectAll = document.getElementById('select-all');
+        if (selectAll) {
+            selectAll.checked       = count > 0 && count === total.length;
+            selectAll.indeterminate = count > 0 && count < total.length;
+        }
+    }
+
+    // SweetAlert konfirmasi bulk delete
+    document.getElementById('btn-bulk-delete')?.addEventListener('click', function() {
+        const count = document.querySelectorAll('input[name="buku_ids[]"]:checked').length;
+        Swal.fire({
+            title: 'Konfirmasi Hapus',
+            text: `Apakah Anda yakin ingin menghapus ${count} buku yang dipilih?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById('bulk-delete-form');
+                form.querySelectorAll('input[name="buku_ids[]"]').forEach(input => input.remove());
+
+                document.querySelectorAll('input[name="buku_ids[]"]:checked').forEach(checkbox => {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'buku_ids[]';
+                    hiddenInput.value = checkbox.value;
+                    form.appendChild(hiddenInput);
+                });
+
+                form.submit();
+            }
+        });
+    });
+</script>
+@endpush
 @endsection
