@@ -35,9 +35,11 @@
                         <p class="text-sm text-gray-700 mt-3"><strong>Jumlah buku:</strong> {{ $kategori->bukus_count }}</p>
                         <div class="mt-4 flex gap-2">
                             <a href="{{ route('kategori.show', $kategori->id) }}"
-                               class="flex-1 text-center px-3 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700">Detail</a>
+                               class="flex-1 text-center px-3 py-2 text-sm rounded-md bg-sky-500 text-white hover:bg-sky-600">
+                                <i class="bi bi-eye"></i> Detail</a>
                             <a href="{{ route('kategori.edit', $kategori->id) }}"
-                               class="flex-1 text-center px-3 py-2 bg-amber-500 text-white text-sm rounded-md hover:bg-amber-600">Edit</a>
+                               class="flex-1 text-center px-3 py-2 text-sm rounded-md bg-amber-400 text-amber-900 hover:bg-amber-500">
+                                <i class="bi bi-pencil"></i> Edit</a>
                             <form action="{{ route('kategori.destroy', $kategori->id) }}" method="POST"
                                   onsubmit="return confirm('Yakin ingin menghapus kategori ini?')">
                                 @csrf
