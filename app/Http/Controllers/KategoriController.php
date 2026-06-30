@@ -2,158 +2,120 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kategori;
 use Illuminate\Http\Request;
 
 class KategoriController extends Controller
 {
-    public function index()
+    /**
+     * Tampilkan daftar kategori beserta jumlah buku.
+     */
+    public function index(Request $request)
     {
-        $kategori_list = [
-            [
-                'id' => 1,
-                'nama' => 'Programming',
-                'deskripsi' => 'Buku pemrograman dan coding',
-                'jumlah_buku' => 25
-            ],
-            [
-                'id' => 2,
-                'nama' => 'Database',
-                'deskripsi' => 'Buku tentang database dan SQL',
-                'jumlah_buku' => 18
-            ],
-            [
-                'id' => 3,
-                'nama' => 'Jaringan',
-                'deskripsi' => 'Buku jaringan komputer dan internet',
-                'jumlah_buku' => 12
-            ],
-            [
-                'id' => 4,
-                'nama' => 'Desain Web',
-                'deskripsi' => 'Buku UI, UX, dan desain web',
-                'jumlah_buku' => 14
-            ],
-            [
-                'id' => 5,
-                'nama' => 'Sistem Operasi',
-                'deskripsi' => 'Buku tentang Linux, Windows, dan OS',
-                'jumlah_buku' => 9
-            ],
-        ];
+        $query = Kategori::withCount('bukus');
+
+        if ($request->filled('q')) {
+            $keyword = $request->input('q');
+            $query->where('nama_kategori', 'LIKE', "%{$keyword}%")
+                  ->orWhere('deskripsi', 'LIKE', "%{$keyword}%");
+        }
+
+        $kategori_list = $query->orderBy('nama_kategori')->get();
 
         return view('kategori.index', compact('kategori_list'));
     }
 
-    public function show($id)
+    /**
+     * Form tambah kategori.
+     */
+    public function create()
     {
-        $kategori_data = [
-            1 => [
-                'id' => 1,
-                'nama' => 'Programming',
-                'deskripsi' => 'Buku pemrograman dan coding',
-                'jumlah_buku' => 25
-            ],
-            2 => [
-                'id' => 2,
-                'nama' => 'Database',
-                'deskripsi' => 'Buku tentang database dan SQL',
-                'jumlah_buku' => 18
-            ],
-            3 => [
-                'id' => 3,
-                'nama' => 'Jaringan',
-                'deskripsi' => 'Buku jaringan komputer dan internet',
-                'jumlah_buku' => 12
-            ],
-            4 => [
-                'id' => 4,
-                'nama' => 'Desain Web',
-                'deskripsi' => 'Buku UI, UX, dan desain web',
-                'jumlah_buku' => 14
-            ],
-            5 => [
-                'id' => 5,
-                'nama' => 'Sistem Operasi',
-                'deskripsi' => 'Buku tentang Linux, Windows, dan OS',
-                'jumlah_buku' => 9
-            ],
-        ];
+        return view('kategori.create');
+    }
 
-        if (!isset($kategori_data[$id])) {
-            abort(404, 'Kategori tidak ditemukan');
-        }
+    /**
+     * Simpan kategori baru.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_kategori' => 'required|string|max:50|unique:kategori,nama_kategori',
+            'deskripsi'     => 'nullable|string',
+            'icon'          => 'nullable|string|max:50',
+            'warna'         => 'nullable|string|max:20',
+        ], [
+            'nama_kategori.required' => 'Nama kategori wajib diisi.',
+            'nama_kategori.unique'   => 'Nama kategori sudah ada.',
+        ]);
 
-        $kategori = $kategori_data[$id];
+        Kategori::create($validated);
 
-        $buku_by_kategori = [
-            1 => [
-                ['judul' => 'Belajar Laravel', 'pengarang' => 'Andi', 'tahun' => 2024],
-                ['judul' => 'PHP Dasar', 'pengarang' => 'Budi', 'tahun' => 2023],
-                ['judul' => 'OOP Modern', 'pengarang' => 'Siti', 'tahun' => 2024],
-            ],
-            2 => [
-                ['judul' => 'MySQL Praktis', 'pengarang' => 'Doni', 'tahun' => 2022],
-                ['judul' => 'PostgreSQL Lanjut', 'pengarang' => 'Rina', 'tahun' => 2023],
-            ],
-            3 => [
-                ['judul' => 'Jaringan Komputer', 'pengarang' => 'Agus', 'tahun' => 2021],
-                ['judul' => 'TCP/IP Fundamental', 'pengarang' => 'Nina', 'tahun' => 2022],
-            ],
-            4 => [
-                ['judul' => 'UI Design', 'pengarang' => 'Arif', 'tahun' => 2023],
-                ['judul' => 'UX Research', 'pengarang' => 'Dina', 'tahun' => 2024],
-            ],
-            5 => [
-                ['judul' => 'Linux Dasar', 'pengarang' => 'Iwan', 'tahun' => 2020],
-                ['judul' => 'Windows Internals', 'pengarang' => 'Rafi', 'tahun' => 2023],
-            ],
-        ];
+        return redirect()->route('kategori.index')
+                         ->with('success', 'Kategori berhasil ditambahkan!');
+    }
 
-        $buku_list = $buku_by_kategori[$id] ?? [];
+    /**
+     * Tampilkan detail kategori beserta daftar bukunya.
+     */
+    public function show(string $id)
+    {
+        $kategori = Kategori::withCount('bukus')->findOrFail($id);
+        $buku_list = $kategori->bukus()->latest()->get();
 
         return view('kategori.show', compact('kategori', 'buku_list'));
     }
 
-    public function search($keyword)
+    /**
+     * Form edit kategori.
+     */
+    public function edit(string $id)
     {
-        $kategori_list = [
-            [
-                'id' => 1,
-                'nama' => 'Programming',
-                'deskripsi' => 'Buku pemrograman dan coding',
-                'jumlah_buku' => 25
-            ],
-            [
-                'id' => 2,
-                'nama' => 'Database',
-                'deskripsi' => 'Buku tentang database dan SQL',
-                'jumlah_buku' => 18
-            ],
-            [
-                'id' => 3,
-                'nama' => 'Jaringan',
-                'deskripsi' => 'Buku jaringan komputer dan internet',
-                'jumlah_buku' => 12
-            ],
-            [
-                'id' => 4,
-                'nama' => 'Desain Web',
-                'deskripsi' => 'Buku UI, UX, dan desain web',
-                'jumlah_buku' => 14
-            ],
-            [
-                'id' => 5,
-                'nama' => 'Sistem Operasi',
-                'deskripsi' => 'Buku tentang Linux, Windows, dan OS',
-                'jumlah_buku' => 9
-            ],
-        ];
+        $kategori = Kategori::findOrFail($id);
+        return view('kategori.edit', compact('kategori'));
+    }
 
-        $hasil = array_values(array_filter($kategori_list, function ($kategori) use ($keyword) {
-            return stripos($kategori['nama'], $keyword) !== false
-                || stripos($kategori['deskripsi'], $keyword) !== false;
-        }));
+    /**
+     * Update kategori.
+     */
+    public function update(Request $request, string $id)
+    {
+        $kategori = Kategori::findOrFail($id);
 
-        return view('kategori.search', compact('keyword', 'hasil'));
+        $validated = $request->validate([
+            'nama_kategori' => 'required|string|max:50|unique:kategori,nama_kategori,' . $kategori->id,
+            'deskripsi'     => 'nullable|string',
+            'icon'          => 'nullable|string|max:50',
+            'warna'         => 'nullable|string|max:20',
+        ], [
+            'nama_kategori.required' => 'Nama kategori wajib diisi.',
+            'nama_kategori.unique'   => 'Nama kategori sudah ada.',
+        ]);
+
+        $kategori->update($validated);
+
+        // Sinkronkan kolom string 'kategori' pada buku terkait
+        $kategori->bukus()->update(['kategori' => $kategori->nama_kategori]);
+
+        return redirect()->route('kategori.index')
+                         ->with('success', 'Kategori berhasil diupdate!');
+    }
+
+    /**
+     * Hapus kategori (jika tidak memiliki buku).
+     */
+    public function destroy(string $id)
+    {
+        $kategori = Kategori::withCount('bukus')->findOrFail($id);
+
+        if ($kategori->bukus_count > 0) {
+            return redirect()->route('kategori.index')
+                             ->with('error', "Kategori '{$kategori->nama_kategori}' tidak bisa dihapus karena masih memiliki {$kategori->bukus_count} buku.");
+        }
+
+        $nama = $kategori->nama_kategori;
+        $kategori->delete();
+
+        return redirect()->route('kategori.index')
+                         ->with('success', "Kategori '{$nama}' berhasil dihapus!");
     }
 }

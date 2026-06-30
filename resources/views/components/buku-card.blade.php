@@ -1,73 +1,72 @@
 @php
     $tersedia = $buku->stok > 0;
+    $showActions = $showActions ?? true;
 @endphp
 
-<div class="card h-100 shadow-sm">
-    <div class="card-body">
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col h-full">
+    <div class="p-5 flex-grow">
         {{-- Checkbox bulk delete --}}
-        <div class="form-check mb-2">
+        <label class="inline-flex items-center gap-2 mb-3 text-xs text-gray-500 cursor-pointer">
             <input type="checkbox"
                    name="buku_ids[]"
                    value="{{ $buku->id }}"
-                   class="form-check-input buku-checkbox"
-                   id="buku-{{ $buku->id }}"
-                   style="width:18px;height:18px;cursor:pointer;">
-            <label class="form-check-label text-muted small" for="buku-{{ $buku->id }}">Pilih</label>
-        </div>
+                   class="buku-checkbox rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                   id="buku-{{ $buku->id }}">
+            Pilih
+        </label>
 
-        <div class="d-flex align-items-start gap-3">
-            <div class="rounded bg-light text-primary d-flex align-items-center justify-content-center" style="width:56px;height:56px;">
-                <i class="bi bi-book" style="font-size:1.5rem;"></i>
+        <div class="flex items-start gap-3">
+            <div class="w-14 h-14 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <i class="bi bi-book text-2xl"></i>
             </div>
-            <div class="flex-grow-1">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="badge bg-info text-dark">{{ $buku->kategori }}</span>
+            <div class="flex-grow min-w-0">
+                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                    <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-sky-100 text-sky-800">{{ $buku->kategori }}</span>
                     @if ($tersedia)
-                        <span class="badge bg-success">Tersedia</span>
+                        <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800">Tersedia</span>
                     @else
-                        <span class="badge bg-danger">Habis</span>
+                        <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-red-100 text-red-800">Habis</span>
                     @endif
                 </div>
-                <h5 class="mb-1">{{ $buku->judul }}</h5>
-                <div class="text-muted small">Pengarang: {{ $buku->pengarang }}</div>
+                <h5 class="font-semibold text-gray-900 truncate">{{ $buku->judul }}</h5>
+                <div class="text-gray-500 text-sm">Pengarang: {{ $buku->pengarang }}</div>
             </div>
         </div>
 
-        <hr>
+        <hr class="my-4 border-gray-100">
 
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="flex justify-between items-center">
             <div>
-                <div class="text-muted small">Harga</div>
-                <div class="fw-semibold">{{ $buku->harga_format }}</div>
+                <div class="text-gray-500 text-xs">Harga</div>
+                <div class="font-semibold text-gray-800">{{ $buku->harga_format }}</div>
             </div>
-            <div class="text-end">
-                <div class="text-muted small">Stok</div>
-                <div class="fw-semibold">{{ $buku->stok }}</div>
+            <div class="text-right">
+                <div class="text-gray-500 text-xs">Stok</div>
+                <div class="font-semibold text-gray-800">{{ $buku->stok }}</div>
             </div>
         </div>
     </div>
 
     @if ($showActions)
-        <div class="card-footer bg-white">
-            <div class="btn-group-vertical d-grid gap-2">
-                <a href="{{ route('buku.show', $buku->id) }}" class="btn btn-sm btn-info text-white">
-                    <i class="bi bi-eye"></i> Detail
-                </a>
-                <a href="{{ route('buku.edit', $buku->id) }}" class="btn btn-sm btn-warning">
-                    <i class="bi bi-pencil"></i> Edit
-                </a>
-
-                {{-- Delete Button --}}
-                <form action="{{ route('buku.destroy', $buku->id) }}"
-                      method="POST"
-                      class="d-inline delete-form">
-                    @csrf
-                    @method('DELETE')
-                    <button type="button" class="btn btn-sm btn-danger w-100 btn-delete"
-                            data-judul="{{ $buku->judul }}">
-                        <i class="bi bi-trash"></i> Hapus
-                    </button>
-                </form>
+        <div class="px-5 py-3 bg-gray-50 rounded-b-lg flex gap-2">
+            <a href="{{ route('buku.show', $buku->id) }}"
+               class="flex-1 text-center px-3 py-1.5 text-sm rounded-md bg-sky-500 text-white hover:bg-sky-600">
+                <i class="bi bi-eye"></i> Detail
+            </a>
+            <a href="{{ route('buku.edit', $buku->id) }}"
+               class="flex-1 text-center px-3 py-1.5 text-sm rounded-md bg-amber-400 text-amber-900 hover:bg-amber-500">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <form action="{{ route('buku.destroy', $buku->id) }}" method="POST" class="flex-1 delete-form">
+                @csrf
+                @method('DELETE')
+                <button type="button"
+                        class="w-full px-3 py-1.5 text-sm rounded-md bg-red-500 text-white hover:bg-red-600 btn-delete"
+                        data-judul="{{ $buku->judul }}">
+                    <i class="bi bi-trash"></i> Hapus
+                </button>
+            </form>
+        </div>
 
 @once
     @push('scripts')
@@ -95,21 +94,8 @@
                 });
             });
         });
-
-        // Loading state saat submit form
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function() {
-                const submitBtn = this.querySelector('button[type="submit"]');
-                if (submitBtn && !this.classList.contains('delete-form')) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
-                }
-            });
-        });
     </script>
     @endpush
 @endonce
-            </div>
-        </div>
     @endif
 </div>

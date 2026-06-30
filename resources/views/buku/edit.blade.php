@@ -1,245 +1,117 @@
-@extends('layouts.app')
- 
-@section('title', 'Edit Buku')
- 
-@section('content')
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="card">
-            <div class="card-header bg-warning">
-                <h4 class="mb-0">
-                    <i class="bi bi-pencil-square"></i>
-                    Edit Buku: {{ $buku->judul }}
-                </h4>
-            </div>
-            <div class="card-body">
-                <form action="{{ route('buku.update', $buku->id) }}" method="POST">
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <i class="bi bi-pencil-square"></i> Edit Buku: {{ $buku->judul }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-4">
+            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <form action="{{ route('buku.update', $buku->id) }}" method="POST" class="space-y-5">
                     @csrf
                     @method('PUT')
-                    
-                    <div class="row">
-                        {{-- Kode Buku --}}
-                        <div class="col-md-4 mb-3">
-                            <label for="kode_buku" class="form-label">
-                                Kode Buku <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="kode_buku" 
-                                   id="kode_buku" 
-                                   class="form-control @error('kode_buku') is-invalid @enderror"
-                                   value="{{ old('kode_buku', $buku->kode_buku) }}">
-                            @error('kode_buku')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div class="md:col-span-4">
+                            <label for="kode_buku" class="block text-sm font-medium text-gray-700">Kode Buku <span class="text-red-500">*</span></label>
+                            <input type="text" name="kode_buku" id="kode_buku" value="{{ old('kode_buku', $buku->kode_buku) }}"
+                                   class="mt-1 block w-full rounded-md shadow-sm text-sm @error('kode_buku') border-red-500 @else border-gray-300 @enderror">
+                            @error('kode_buku')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
-                        
-                        {{-- Judul --}}
-                        <div class="col-md-8 mb-3">
-                            <label for="judul" class="form-label">
-                                Judul Buku <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="judul" 
-                                   id="judul" 
-                                   class="form-control @error('judul') is-invalid @enderror"
-                                   value="{{ old('judul', $buku->judul) }}">
-                            @error('judul')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div class="md:col-span-8">
+                            <label for="judul" class="block text-sm font-medium text-gray-700">Judul Buku <span class="text-red-500">*</span></label>
+                            <input type="text" name="judul" id="judul" value="{{ old('judul', $buku->judul) }}"
+                                   class="mt-1 block w-full rounded-md shadow-sm text-sm @error('judul') border-red-500 @else border-gray-300 @enderror">
+                            @error('judul')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        {{-- Kategori --}}
-                        <div class="col-md-4 mb-3">
-                            <label for="kategori" class="form-label">
-                                Kategori <span class="text-danger">*</span>
-                            </label>
-                            <select name="kategori" 
-                                    id="kategori" 
-                                    class="form-select @error('kategori') is-invalid @enderror">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="kategori_id" class="block text-sm font-medium text-gray-700">Kategori <span class="text-red-500">*</span></label>
+                            <select name="kategori_id" id="kategori_id"
+                                    class="mt-1 block w-full rounded-md shadow-sm text-sm @error('kategori_id') border-red-500 @else border-gray-300 @enderror">
                                 <option value="">-- Pilih Kategori --</option>
-                                @foreach(['Programming', 'Database', 'Web Design', 'Networking', 'Data Science'] as $kat)
-                                    <option value="{{ $kat }}" 
-                                            {{ old('kategori', $buku->kategori) == $kat ? 'selected' : '' }}>
-                                        {{ $kat }}
-                                    </option>
+                                @foreach($kategoris as $kat)
+                                    <option value="{{ $kat->id }}" @selected(old('kategori_id', $buku->kategori_id) == $kat->id)>{{ $kat->nama_kategori }}</option>
                                 @endforeach
                             </select>
-                            @error('kategori')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @error('kategori_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
-                        
-                        {{-- Pengarang --}}
-                        <div class="col-md-4 mb-3">
-                            <label for="pengarang" class="form-label">
-                                Pengarang <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="pengarang" 
-                                   id="pengarang" 
-                                   class="form-control @error('pengarang') is-invalid @enderror"
-                                   value="{{ old('pengarang', $buku->pengarang) }}">
-                            @error('pengarang')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div>
+                            <label for="pengarang" class="block text-sm font-medium text-gray-700">Pengarang <span class="text-red-500">*</span></label>
+                            <input type="text" name="pengarang" id="pengarang" value="{{ old('pengarang', $buku->pengarang) }}"
+                                   class="mt-1 block w-full rounded-md shadow-sm text-sm @error('pengarang') border-red-500 @else border-gray-300 @enderror">
+                            @error('pengarang')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
-                        
-                        {{-- Penerbit --}}
-                        <div class="col-md-4 mb-3">
-                            <label for="penerbit" class="form-label">
-                                Penerbit <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="penerbit" 
-                                   id="penerbit" 
-                                   class="form-control @error('penerbit') is-invalid @enderror"
-                                   value="{{ old('penerbit', $buku->penerbit) }}">
-                            @error('penerbit')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div>
+                            <label for="penerbit" class="block text-sm font-medium text-gray-700">Penerbit <span class="text-red-500">*</span></label>
+                            <input type="text" name="penerbit" id="penerbit" value="{{ old('penerbit', $buku->penerbit) }}"
+                                   class="mt-1 block w-full rounded-md shadow-sm text-sm @error('penerbit') border-red-500 @else border-gray-300 @enderror">
+                            @error('penerbit')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        {{-- Tahun Terbit --}}
-                        <div class="col-md-3 mb-3">
-                            <label for="tahun_terbit" class="form-label">
-                                Tahun Terbit <span class="text-danger">*</span>
-                            </label>
-                            <input type="number" 
-                                   name="tahun_terbit" 
-                                   id="tahun_terbit" 
-                                   class="form-control @error('tahun_terbit') is-invalid @enderror"
-                                   value="{{ old('tahun_terbit', $buku->tahun_terbit) }}"
-                                   min="1900"
-                                   max="{{ date('Y') }}">
-                            @error('tahun_terbit')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div>
+                            <label for="tahun_terbit" class="block text-sm font-medium text-gray-700">Tahun <span class="text-red-500">*</span></label>
+                            <input type="number" name="tahun_terbit" id="tahun_terbit" value="{{ old('tahun_terbit', $buku->tahun_terbit) }}" min="1900" max="{{ date('Y') }}"
+                                   class="mt-1 block w-full rounded-md shadow-sm text-sm @error('tahun_terbit') border-red-500 @else border-gray-300 @enderror">
+                            @error('tahun_terbit')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
-                        
-                        {{-- ISBN --}}
-                        <div class="col-md-3 mb-3">
-                            <label for="isbn" class="form-label">ISBN</label>
-                            <input type="text" 
-                                   name="isbn" 
-                                   id="isbn" 
-                                   class="form-control @error('isbn') is-invalid @enderror"
-                                   value="{{ old('isbn', $buku->isbn) }}">
-                            @error('isbn')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div>
+                            <label for="isbn" class="block text-sm font-medium text-gray-700">ISBN</label>
+                            <input type="text" name="isbn" id="isbn" value="{{ old('isbn', $buku->isbn) }}"
+                                   class="mt-1 block w-full rounded-md shadow-sm text-sm @error('isbn') border-red-500 @else border-gray-300 @enderror">
+                            @error('isbn')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
-                        
-                        {{-- Bahasa --}}
-                        <div class="col-md-2 mb-3">
-                            <label for="bahasa" class="form-label">
-                                Bahasa <span class="text-danger">*</span>
-                            </label>
-                            <select name="bahasa" 
-                                    id="bahasa" 
-                                    class="form-select @error('bahasa') is-invalid @enderror">
-                                <option value="Indonesia" {{ old('bahasa', $buku->bahasa) == 'Indonesia' ? 'selected' : '' }}>
-                                    Indonesia
-                                </option>
-                                <option value="Inggris" {{ old('bahasa', $buku->bahasa) == 'Inggris' ? 'selected' : '' }}>
-                                    Inggris
-                                </option>
+                        <div>
+                            <label for="bahasa" class="block text-sm font-medium text-gray-700">Bahasa <span class="text-red-500">*</span></label>
+                            <select name="bahasa" id="bahasa"
+                                    class="mt-1 block w-full rounded-md shadow-sm text-sm @error('bahasa') border-red-500 @else border-gray-300 @enderror">
+                                <option value="Indonesia" @selected(old('bahasa', $buku->bahasa) == 'Indonesia')>Indonesia</option>
+                                <option value="Inggris" @selected(old('bahasa', $buku->bahasa) == 'Inggris')>Inggris</option>
                             </select>
-                            @error('bahasa')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @error('bahasa')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
-                        
-                        {{-- Harga --}}
-                        <div class="col-md-2 mb-3">
-                            <label for="harga" class="form-label">
-                                Harga <span class="text-danger">*</span>
-                            </label>
-                            <input type="number" 
-                                   name="harga" 
-                                   id="harga" 
-                                   class="form-control @error('harga') is-invalid @enderror"
-                                   value="{{ old('harga', $buku->harga) }}"
-                                   min="0"
-                                   step="1000">
-                            @error('harga')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div>
+                            <label for="harga" class="block text-sm font-medium text-gray-700">Harga <span class="text-red-500">*</span></label>
+                            <input type="number" name="harga" id="harga" value="{{ old('harga', $buku->harga) }}" min="0" step="1000"
+                                   class="mt-1 block w-full rounded-md shadow-sm text-sm @error('harga') border-red-500 @else border-gray-300 @enderror">
+                            @error('harga')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
-                        
-                        {{-- Stok --}}
-                        <div class="col-md-2 mb-3">
-                            <label for="stok" class="form-label">
-                                Stok <span class="text-danger">*</span>
-                            </label>
-                            <input type="number" 
-                                   name="stok" 
-                                   id="stok" 
-                                   class="form-control @error('stok') is-invalid @enderror"
-                                   value="{{ old('stok', $buku->stok) }}"
-                                   min="0">
-                            @error('stok')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div>
+                            <label for="stok" class="block text-sm font-medium text-gray-700">Stok <span class="text-red-500">*</span></label>
+                            <input type="number" name="stok" id="stok" value="{{ old('stok', $buku->stok) }}" min="0"
+                                   class="mt-1 block w-full rounded-md shadow-sm text-sm @error('stok') border-red-500 @else border-gray-300 @enderror">
+                            @error('stok')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
-                    
-                    {{-- Deskripsi --}}
-                    <div class="mb-3">
-                        <label for="deskripsi" class="form-label">Deskripsi</label>
-                        <textarea name="deskripsi" 
-                                  id="deskripsi" 
-                                  rows="4" 
-                                  class="form-control @error('deskripsi') is-invalid @enderror">{{ old('deskripsi', $buku->deskripsi) }}</textarea>
-                        @error('deskripsi')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+
+                    <div>
+                        <label for="deskripsi" class="block text-sm font-medium text-gray-700">Deskripsi</label>
+                        <textarea name="deskripsi" id="deskripsi" rows="4"
+                                  class="mt-1 block w-full rounded-md shadow-sm text-sm @error('deskripsi') border-red-500 @else border-gray-300 @enderror">{{ old('deskripsi', $buku->deskripsi) }}</textarea>
+                        @error('deskripsi')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
-                    
-                    <hr>
-                    
-                    {{-- Buttons --}}
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ route('buku.show', $buku->id) }}" class="btn btn-secondary">
+
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                        <a href="{{ route('buku.show', $buku->id) }}" class="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-md hover:bg-gray-50">
                             <i class="bi bi-arrow-left"></i> Kembali
                         </a>
-                        <button type="submit" class="btn btn-warning">
+                        <button type="submit" class="px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-md hover:bg-amber-600">
                             <i class="bi bi-save"></i> Update Buku
                         </button>
                     </div>
                 </form>
             </div>
-        </div>
-        
-        {{-- Info Update --}}
-        <div class="card mt-3">
-            <div class="card-body">
-                <small class="text-muted">
-                    <i class="bi bi-info-circle"></i>
-                    <strong>Informasi:</strong><br />
-                    - Buku ditambahkan: {{ $buku->created_at->format('d M Y H:i') }}<br />
-                    - Terakhir diupdate: {{ $buku->updated_at->format('d M Y H:i') }}
-                </small>
+
+            <div class="bg-white shadow-sm sm:rounded-lg p-4 text-sm text-gray-500">
+                <i class="bi bi-info-circle"></i>
+                Ditambahkan: {{ $buku->created_at->format('d M Y H:i') }} &bull;
+                Terakhir diupdate: {{ $buku->updated_at->format('d M Y H:i') }}
             </div>
         </div>
     </div>
-</div>
-
-@push('scripts')
-<script>
-    // Loading state saat submit form
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function() {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            if (submitBtn && !this.classList.contains('delete-form')) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
-            }
-        });
-    });
-</script>
-@endpush
-@endsection
+</x-app-layout>

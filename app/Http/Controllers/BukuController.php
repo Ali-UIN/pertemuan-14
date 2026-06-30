@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBukuRequest;
 use App\Models\Buku;
+use App\Models\Kategori;
 use Illuminate\Http\Request;
 use App\Http\Requests\UpdateBukuRequest;
+use App\Exports\BukuExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BukuController extends Controller
 {
@@ -30,8 +33,8 @@ class BukuController extends Controller
      */
     public function create()
     {
-        //
-        return view('buku.create');
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
+        return view('buku.create', compact('kategoris'));
     }
 
     /**
@@ -40,9 +43,11 @@ class BukuController extends Controller
     public function store(StoreBukuRequest $request)
     {
         try {
-            // Create buku baru dengan validated data
-            Buku::create($request->validated());
-            
+            // Create buku baru dengan validated data + sinkron nama kategori
+            $data = $request->validated();
+            $data['kategori'] = Kategori::find($data['kategori_id'])?->nama_kategori;
+            Buku::create($data);
+
             // Redirect dengan success message
             return redirect()->route('buku.index')
                             ->with('success', 'Buku berhasil ditambahkan!');
@@ -70,9 +75,9 @@ class BukuController extends Controller
      */
     public function edit(string $id)
     {
-        //
         $buku = Buku::findOrFail($id);
-        return view('buku.edit', compact('buku'));
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
+        return view('buku.edit', compact('buku', 'kategoris'));
     }
 
     /**
@@ -86,10 +91,12 @@ public function update(UpdateBukuRequest $request, string $id)
 {
     try {
         $buku = Buku::findOrFail($id);
-        
-        // Update buku dengan validated data
-        $buku->update($request->validated());
-        
+
+        // Update buku dengan validated data + sinkron nama kategori
+        $data = $request->validated();
+        $data['kategori'] = Kategori::find($data['kategori_id'])?->nama_kategori;
+        $buku->update($data);
+
         // Redirect dengan success message
         return redirect()->route('buku.show', $buku->id)
                          ->with('success', 'Buku berhasil diupdate!');
@@ -141,40 +148,7 @@ public function update(UpdateBukuRequest $request, string $id)
 
     public function export()
     {
-        $bukus = Buku::all();
-
-        $filename = 'buku_' . date('Y-m-d_His') . '.csv';
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        $callback = function () use ($bukus) {
-            $file = fopen('php://output', 'w');
-
-            fputcsv($file, [
-                'Kode Buku', 'Judul', 'Kategori', 'Pengarang',
-                'Penerbit', 'Tahun', 'ISBN', 'Harga', 'Stok'
-            ]);
-
-            foreach ($bukus as $buku) {
-                fputcsv($file, [
-                    $buku->kode_buku,
-                    $buku->judul,
-                    $buku->kategori,
-                    $buku->pengarang,
-                    $buku->penerbit,
-                    $buku->tahun_terbit,
-                    $buku->isbn,
-                    $buku->harga,
-                    $buku->stok,
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return Excel::download(new BukuExport, 'buku_' . date('Y-m-d_His') . '.xlsx');
     }
 
     public function filterKategori($kategori)

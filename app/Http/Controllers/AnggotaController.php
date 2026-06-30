@@ -36,8 +36,21 @@ class AnggotaController extends Controller
      */
     public function show(string $id)
     {
-        $anggota = Anggota::findOrFail($id);
-        return view('anggota.show', compact('anggota'));
+        $anggota = Anggota::with(['transaksis' => function ($q) {
+            $q->with('buku')->latest();
+        }])->findOrFail($id);
+
+        $riwayat = $anggota->transaksis;
+
+        // Statistik peminjaman anggota
+        $statistik = [
+            'total_pinjam'   => $riwayat->count(),
+            'sedang_pinjam'  => $riwayat->where('status', 'Dipinjam')->count(),
+            'dikembalikan'   => $riwayat->where('status', 'Dikembalikan')->count(),
+            'total_denda'    => $riwayat->sum('denda'),
+        ];
+
+        return view('anggota.show', compact('anggota', 'riwayat', 'statistik'));
     }
  
     // Methods lainnya akan diimplementasi di pertemuan 13

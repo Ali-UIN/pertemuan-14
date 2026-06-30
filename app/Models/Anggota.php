@@ -4,6 +4,7 @@ namespace App\Models;
  
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
  
 class Anggota extends Model
@@ -96,6 +97,14 @@ class Anggota extends Model
         return 'Senior';
     }
  
+    /**
+     * Relasi: satu anggota bisa memiliki banyak transaksi peminjaman.
+     */
+    public function transaksis(): HasMany
+    {
+        return $this->hasMany(Transaksi::class);
+    }
+
     /**
      * Scope untuk filter anggota aktif.
      */

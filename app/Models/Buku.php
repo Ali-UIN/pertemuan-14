@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Buku extends Model
 {
@@ -24,6 +26,7 @@ class Buku extends Model
         'kode_buku',
         'judul',
         'kategori',
+        'kategori_id',
         'pengarang',
         'penerbit',
         'tahun_terbit',
@@ -91,6 +94,23 @@ class Buku extends Model
         return (int) $this->tahun_terbit >= 2024 ? 'Buku Baru' : 'Buku Lama';
     }
  
+    /**
+     * Relasi: satu buku bisa memiliki banyak transaksi peminjaman.
+     */
+    public function transaksis(): HasMany
+    {
+        return $this->hasMany(Transaksi::class);
+    }
+
+    /**
+     * Relasi: satu buku dimiliki oleh satu kategori (belongsTo).
+     * Dinamai kategoriRelasi agar tidak bentrok dengan kolom string 'kategori'.
+     */
+    public function kategoriRelasi(): BelongsTo
+    {
+        return $this->belongsTo(Kategori::class, 'kategori_id');
+    }
+
     /**
      * Scope untuk filter buku tersedia.
      */

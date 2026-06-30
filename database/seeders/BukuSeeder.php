@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Buku;
+use App\Models\Kategori;
 
 class BukuSeeder extends Seeder
 {
@@ -120,7 +121,12 @@ class BukuSeeder extends Seeder
             ],
         ];
 
+        // Map nama kategori -> id agar relasi kategori_id terisi
+        $kategoriMap = Kategori::pluck('id', 'nama_kategori');
+
         foreach ($bukuList as $buku) {
+            $buku['kategori_id'] = $kategoriMap[$buku['kategori']] ?? null;
+
             Buku::updateOrCreate(
                 ['kode_buku' => $buku['kode_buku']],
                 $buku

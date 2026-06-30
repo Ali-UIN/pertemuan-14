@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Kategori extends Model
 {
@@ -17,4 +18,12 @@ class Kategori extends Model
         'icon',
         'warna',
     ];
+
+    /**
+     * Relasi: satu kategori memiliki banyak buku (hasMany).
+     */
+    public function bukus(): HasMany
+    {
+        return $this->hasMany(Buku::class, 'kategori_id');
+    }
 }
